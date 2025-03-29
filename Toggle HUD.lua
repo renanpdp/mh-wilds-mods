@@ -53,7 +53,7 @@ local hudWhenModDisabled = {
   ["WEAPON"] = 1
 }
 
-local customHudSettings = {
+local hudWithL1Pressed = {
   ["CLOCK"] = 0,
   ["COMPANION"] = 0,
   ["CONTROL"] = 3,
@@ -73,6 +73,28 @@ local customHudSettings = {
   ["STAMINA"] = 1,
   ["TARGET"] = 0,
   ["WEAPON"] = 1
+}
+
+local hiddenHud = {
+  ["CLOCK"] = 3,
+  ["COMPANION"] = 0,
+  ["CONTROL"] = 3,
+  ["GUIDE"] = 3,
+  ["HEALTH"] = 0,
+  ["MINIMAP"] = 3,
+  ["NAME_ACCESSIBLE"] = 0,
+  ["NAME_OTHER"] = 3,
+  ["NOTICE"] = 0,
+  ["PROGRESS"] = 3,
+  ["SHARPNESS"] = 0,
+  ["SHORTCUT_GAMEPAD"] = 1,
+  ["SHORTCUT_KEYBOARD"] = 1,
+  ["SLIDER_BULLET"] = 3,
+  ["SLIDER_ITEM"] = 3,
+  ["SLINGER"] = 3,
+  ["STAMINA"] = 0,
+  ["TARGET"] = 3,
+  ["WEAPON"] = 0
 }
 
 local guiManager = sdk.get_managed_singleton("app.GUIManager")
@@ -131,7 +153,7 @@ local status = ""
 
 local function showHudCustomSettings()
   if imgui.tree_node("Custom Hud Settings") then 
-    for key, value in pairs(customHudSettings) do
+    for key, value in pairs(hudWithL1Pressed) do
       imgui.text(tostring(key) .. ": " .. tostring(value))
     end
     imgui.tree_pop()
@@ -142,26 +164,14 @@ local isModDisabled = false
 local isChatNotificationsDisabled = false
 
 local function hideHUD()
-  for key, value in pairs(customHudSettings) do
-    -- Excludes:
-    -- 15 = Radial menu
-    -- 17 = Name display: interactables
-    -- 11 = Chat notifications (se tiver manualmente desabilitado)
-    if hudSettingsMapper[key] ~= 15 and hudSettingsMapper[key] ~= 17 and (hudSettingsMapper[key] ~= 11 or isChatNotificationsDisabled) then
-      hudDisplayManager:call("setHudDisplay", hudSettingsMapper[key], 3) -- 3 = Hidden
-    end
-  end
-end
-
-local function restoreHUD()
-  for key, value in pairs(customHudSettings) do
+  for key, value in pairs(hiddenHud) do
     hudDisplayManager:call("setHudDisplay", hudSettingsMapper[key], value)
   end
 end
 
-local function restoreDefaultHUD()
-  for key, value in pairs(hudSettingsMapper) do
-    hudDisplayManager:call("setHudDisplay", value, 1) -- 1 = Default
+local function restoreHUD()
+  for key, value in pairs(hudWithL1Pressed) do
+    hudDisplayManager:call("setHudDisplay", hudSettingsMapper[key], value)
   end
 end
 

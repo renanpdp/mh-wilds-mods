@@ -75,26 +75,48 @@ local hudWithL1Pressed = {
   ["WEAPON"] = 1
 }
 
-local hiddenHud = {
+local minimalisticHud = {
   ["CLOCK"] = 3,
   ["COMPANION"] = 0,
   ["CONTROL"] = 3,
   ["GUIDE"] = 3,
-  ["HEALTH"] = 0,
+  ["HEALTH"] = 1,
   ["MINIMAP"] = 3,
   ["NAME_ACCESSIBLE"] = 0,
   ["NAME_OTHER"] = 3,
   ["NOTICE"] = 0,
   ["PROGRESS"] = 3,
-  ["SHARPNESS"] = 0,
+  ["SHARPNESS"] = 1,
+  ["SHORTCUT_GAMEPAD"] = 1,
+  ["SHORTCUT_KEYBOARD"] = 1,
+  ["SLIDER_BULLET"] = 3,
+  ["SLIDER_ITEM"] = 3,
+  ["SLINGER"] = 0,
+  ["STAMINA"] = 1,
+  ["TARGET"] = 3,
+  ["WEAPON"] = 1
+}
+
+local hiddenHud = {
+  ["CLOCK"] = 3,
+  ["COMPANION"] = 3,
+  ["CONTROL"] = 3,
+  ["GUIDE"] = 3,
+  ["HEALTH"] = 3,
+  ["MINIMAP"] = 3,
+  ["NAME_ACCESSIBLE"] = 0,
+  ["NAME_OTHER"] = 3,
+  ["NOTICE"] = 0,
+  ["PROGRESS"] = 3,
+  ["SHARPNESS"] = 3,
   ["SHORTCUT_GAMEPAD"] = 1,
   ["SHORTCUT_KEYBOARD"] = 1,
   ["SLIDER_BULLET"] = 3,
   ["SLIDER_ITEM"] = 3,
   ["SLINGER"] = 3,
-  ["STAMINA"] = 0,
+  ["STAMINA"] = 3,
   ["TARGET"] = 3,
-  ["WEAPON"] = 0
+  ["WEAPON"] = 3
 }
 
 local guiManager = sdk.get_managed_singleton("app.GUIManager")
@@ -162,10 +184,23 @@ end
 
 local isModDisabled = false
 local isChatNotificationsDisabled = false
+local isHiddenMode = false
+
+local function minimizeHUD()
+  for key, value in pairs(minimalisticHud) do
+    hudDisplayManager:call("setHudDisplay", hudSettingsMapper[key], value)
+  end
+  if isChatNotificationsDisabled then
+    hudDisplayManager:call("setHudDisplay", 11, 3) -- 11 = Chat notifications / 3 = Hidden
+  end
+end
 
 local function hideHUD()
   for key, value in pairs(hiddenHud) do
     hudDisplayManager:call("setHudDisplay", hudSettingsMapper[key], value)
+  end
+  if isChatNotificationsDisabled then
+    hudDisplayManager:call("setHudDisplay", 11, 3) -- 11 = Chat notifications / 3 = Hidden
   end
 end
 
@@ -178,6 +213,12 @@ end
 local function restoreHUDModDisabled()
   for key, value in pairs(hudWhenModDisabled) do
     hudDisplayManager:call("setHudDisplay", hudSettingsMapper[key], value)
+  end
+end
+
+local function restoreDefaultHUD()
+  for key, value in pairs(hudSettingsMapper) do
+    hudDisplayManager:call("setHudDisplay", value, 1) -- 1 = Default
   end
 end
 
@@ -195,24 +236,24 @@ sdk.hook(
     function() end,
     function() 
       if isModDisabled then return end
-      hideHUD()
+      if isHiddenMode then
+        hideHUD()
+      else
+        minimizeHUD()
+      end
     end
 )
 
 re.on_draw_ui(
   function()
     if imgui.tree_node("HUD Toggle Mod") then
-      -- if imgui.button("Save current HUD") then
-      --   saveHudState()
-      -- end
-
       changed, value = imgui.checkbox("Disable mod", isModDisabled)
       if changed then
         isModDisabled = value
         if isModDisabled then
           restoreHUDModDisabled()
         else
-          hideHUD()
+          minimizeHUD()
         end
       end
 
@@ -220,7 +261,17 @@ re.on_draw_ui(
       if changed then
         isChatNotificationsDisabled = value
         restoreHUD()
-        hideHUD()
+        minimizeHUD()
+      end
+
+      changed, value = imgui.checkbox("Hide All (except chat notifications)", isHiddenMode)
+      if changed then
+        isHiddenMode = value
+        if isHiddenMode then
+          hideHUD()
+        else
+          minimizeHUD()
+        end
       end
 
       -- if imgui.button("Hide HUD") then
@@ -231,16 +282,16 @@ re.on_draw_ui(
       --   restoreHUD()
       -- end
   
-      -- if imgui.button("Restore Default HUD") then
-      --   restoreDefaultHUD()
-      -- end
+      if imgui.button("Restore Default HUD") then
+        restoreDefaultHUD()
+      end
 
       if string.len(status) > 0 then
         imgui.text("Status: " .. status)
       end
 
-      showHudCustomSettings()
-      showHudSettingsMapper()
+      -- showHudCustomSettings()
+      -- showHudSettingsMapper()
 
       imgui.tree_pop()
     end

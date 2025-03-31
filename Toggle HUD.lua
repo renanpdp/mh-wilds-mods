@@ -56,7 +56,7 @@ local hudWhenModDisabled = {
 local hudWithL1Pressed = {
   ["CLOCK"] = 0,
   ["COMPANION"] = 0,
-  ["CONTROL"] = 3,
+  ["CONTROL"] = 0,
   ["GUIDE"] = 0,
   ["HEALTH"] = 1,
   ["MINIMAP"] = 0,
@@ -278,9 +278,9 @@ re.on_draw_ui(
       --   hideHUD()
       -- end
   
-      -- if imgui.button("Restore Custom HUD") then
-      --   restoreHUD()
-      -- end
+      if imgui.button("Restore Custom HUD") then
+        restoreHUD()
+      end
   
       if imgui.button("Restore Default HUD") then
         restoreDefaultHUD()
